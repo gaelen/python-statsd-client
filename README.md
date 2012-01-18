@@ -11,8 +11,8 @@ stats out of your python code.
 Annoyed with managing external packages?  There are plenty of statsd clients that come up
 under 'pip search statsd'.  Who has time to keep track of tiny dependencies for small projects? Just
 copy statsd.py into your project if you're into that kind of thing. No need to depend on some
-multi-file package for what should be a simple client. If you're a stickler for dependies, you
-probably don't need to know how to install this, but here you go any how:
+multi-file package for what should be a simple client. Grab and Go! If you're a stickler for
+dependencies, you probably don't need to know how to install this, but here you go any how:
 
 Clone and install:
 
@@ -22,7 +22,7 @@ Clone and install:
 
 Install with pip:
 
-    pip install python-statsd-client
+    pip install statsd-client
 
 Or like I said above, just copy statsd.py into your code base.
 
@@ -111,6 +111,12 @@ in the code block:
                 raise ValueError('Whoops')
     f = Foo()
     f.proc() # Raises exception, but sends timing data for bucket 'photos.total-except'
+
+## Misc
+
+The client integrates great with [Flask](http://flask.pocoo.org/).  Just call statsd.init_statsd
+when you're initializing all your other framework components.  Once that's done, you can use the
+timers and counters anywhere in your code.
 
 ## Contributing
 
