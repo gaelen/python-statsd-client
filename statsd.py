@@ -20,8 +20,8 @@ def increment(bucket, delta=1, sample_rate=None):
     _statsd.incr(bucket, delta, sample_rate)
 
 
-def timing(bucket, ms):
-    _statsd.timing(bucket, ms)
+def timing(bucket, ms, sample_rate=None):
+    _statsd.timing(bucket, ms, sample_rate)
 
 
 class StatsdClient(object):
@@ -37,20 +37,20 @@ class StatsdClient(object):
         """Decrements a counter by delta.
         """
         value = b'%d|c' % (-1 * delta)
-        self.send(bucket, value, sample_rate)
+        self._send(bucket, value, sample_rate)
 
     def incr(self, bucket, delta=1, sample_rate=None):
         """Increment a counter by delta.
         """
         value = b'%d|c' % delta
-        self.send(bucket, value, sample_rate)
+        self._send(bucket, value, sample_rate)
 
-    def send(self, bucket, value, sample_rate=None):
+    def _send(self, bucket, value, sample_rate=None):
         """Format and send data to statsd.
         """
         sample_rate = sample_rate or self._sample_rate
 
-        if sample_rate and sample_rate < 1.0:
+        if sample_rate and sample_rate < 1.0 and sample_rate > 0:
             if random.random() <= sample_rate:
                 value = b'%s|@%s' % (value, sample_rate)
         stat = b'%s:%s' % (bucket, value)
@@ -63,7 +63,7 @@ class StatsdClient(object):
         """Creates a timing sample.
         """
         value = b'%d|ms' % ms
-        self.send(bucket, value, sample_rate)
+        self._send(bucket, value, sample_rate)
 
 
 class StatsdCounter(object):
@@ -114,8 +114,8 @@ class StatsdTimer(object):
         result to statsd.
         """
         self._splits.append((bucket_key, time.time() * 1000))
-        self.timing(self._bucket + '.' + bucket_key,
-                    self._splits[-2][1] - self._splits[-1][1])
+        self._client.timing(self._bucket + '.' + bucket_key,
+                            self._splits[-1][1] - self._splits[-2][1])
 
     def stop(self, bucket_key='total'):
         """Stops the timer and sends total time to statsd.

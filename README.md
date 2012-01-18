@@ -114,5 +114,5 @@ in the code block:
 
 ## Contributing
 
-If found a bug and want to fix it, fork, branch, and submit a pull request. The master branch will always
-have the latest code.
+If you find a bug and want to fix it, fork, branch, and submit a pull request. The master branch
+will always have the latest working code.

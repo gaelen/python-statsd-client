@@ -11,8 +11,8 @@ def main():
     path = os.path.join(cwd, 'README.md')
     readme = open(path, 'rb').read()
 
-    setup(name='StatsD Client',
-          description='python-statsd-client',
+    setup(name='statsd-client',
+          description='StatsD client for Python',
           long_description=readme,
           version=__version__,
           license='Apache 2.0',
