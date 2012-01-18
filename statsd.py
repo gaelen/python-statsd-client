@@ -4,6 +4,8 @@ import random
 from socket import socket, AF_INET, SOCK_DGRAM
 import time
 
+__version__ = '1.0'
+
 STATSD_HOST = 'localhost'
 STATSD_PORT = 8125
 STATSD_SAMPLE_RATE = None
@@ -64,45 +66,42 @@ class StatsdClient(object):
         self.send(bucket, value, sample_rate)
 
 
-class StatsdCounter(StatsdClient):
+class StatsdCounter(object):
     """Counter for StatsD.
     """
     def __init__(self, bucket, host=None, port=None, prefix=None,
                  sample_rate=None):
-        super(StatsdTimer, self).__init__(host=host, port=port,
-                                         sample_rate=sample_rate)
+        self._client = StatsdClient(host=host, port=port, prefix=prefix,
+                                    sample_rate=sample_rate)
         self._bucket = bucket
 
     def __add__(self, num):
-        self.incr(self._bucket, delta=num)
+        self._client.incr(self._bucket, delta=num)
         return self
 
     def __sub__(self, num):
-        self.decr(self._bucket, delta=num)
+        self._client.decr(self._bucket, delta=num)
         return self
 
 
-class StatsdTimer(StatsdClient):
+class StatsdTimer(object):
     """Timer for StatsD.
     """
     def __init__(self, bucket, host=None, port=None, prefix=None,
                  sample_rate=None):
-        super(StatsdTimer, self).__init__(host=host, port=port,
-                                         sample_rate=sample_rate)
+        self._client = StatsdClient(host=host, port=port, prefix=prefix,
+                                    sample_rate=sample_rate)
         self._bucket = bucket
-
-    def __call__(self, func):
-        def wrapper(*args, **kw):
-            with self:
-                return func(*args, **kw)
-        return wrapper
 
     def __enter__(self):
         self.start()
         return self
 
-    def __exit__(self):
-        self.stop()
+    def __exit__(self, type, value, traceback):
+        if type is not None:
+            self.stop('total-except')
+        else:
+            self.stop()
 
     def start(self, bucket_key='start'):
         """Start the timer.
@@ -122,8 +121,17 @@ class StatsdTimer(StatsdClient):
         """Stops the timer and sends total time to statsd.
         """
         self._stop = time.time() * 1000
-        self.timing(self._bucket + '.' + bucket_key,
-                    self._stop - self._start)
+        self._client.timing(self._bucket + '.' + bucket_key,
+                            self._stop - self._start)
+
+    @staticmethod
+    def wrap(bucket):
+        def wrapper(func):
+            def f(*args, **kw):
+                with StatsdTimer(bucket):
+                    func(*args, **kw)
+            return f
+        return wrapper
 
 
 def init_statsd(settings=None):
@@ -142,9 +150,8 @@ def init_statsd(settings=None):
                                           STATSD_SAMPLE_RATE)
         STATSD_BUCKET_PREFIX = settings.get('STATSD_BUCKET_PREFIX',
                                             STATSD_BUCKET_PREFIX)
-
     _statsd = StatsdClient(STATSD_HOST, STATSD_PORT,
-                         STATSD_SAMPLE_RATE, STATSD_BUCKET_PREFIX)
+                           STATSD_SAMPLE_RATE, STATSD_BUCKET_PREFIX)
     return _statsd
 
 _statsd = init_statsd()
