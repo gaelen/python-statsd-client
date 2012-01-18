@@ -112,4 +112,7 @@ in the code block:
     f = Foo()
     f.proc() # Raises exception, but sends timing data for bucket 'photos.total-except'
 
+## Contributing
 
+If found a bug and want to fix it, fork, branch, and submit a pull request. The master branch will always
+have the latest code.

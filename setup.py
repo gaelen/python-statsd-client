@@ -12,7 +12,7 @@ def main():
     readme = open(path, 'rb').read()
 
     setup(name='StatsD Client',
-          description='Python StatsD Client',
+          description='python-statsd-client',
           long_description=readme,
           version=__version__,
           license='Apache 2.0',
