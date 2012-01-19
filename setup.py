@@ -8,7 +8,7 @@ from statsd import __version__
 
 def main():
     cwd = os.path.dirname(os.path.abspath(__file__))
-    path = os.path.join(cwd, 'README.md')
+    path = os.path.join(cwd, 'README.txt')
     readme = open(path, 'rb').read()
 
     setup(name='statsd-client',
@@ -18,6 +18,7 @@ def main():
           license='Apache 2.0',
           author='Gaelen Hadlett',
           author_email='gaelenh@gmail.com',
+          
           url='https://github.com/gaelenh/python-statsd-client',
           py_modules=['statsd'],
           keywords=['statsd', 'graphite', 'stats'],
