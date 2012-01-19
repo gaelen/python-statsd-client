@@ -162,7 +162,7 @@ class TestStatsdTimer(unittest.TestCase):
         timer.split('lap')
         self.assertTrue(timer._client._socket.data.startswith(b'timeit.lap:2'))
         self.assertTrue(timer._client._socket.data.endswith(b'|ms'))
-        time.sleep(0.25)
+        time.sleep(0.27)
         timer.stop()
         self.assertTrue(timer._client._socket.data.startswith(b'timeit.total:5'))
         self.assertTrue(timer._client._socket.data.endswith(b'|ms'))
