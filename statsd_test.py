@@ -1,5 +1,4 @@
 
-from __future__ import absolute_import
 import unittest
 import socket
 import time
@@ -44,8 +43,10 @@ class TestStatsd(unittest.TestCase):
         self.assertEqual(statsd._statsd._socket.data, b'counted:-1|c')
         statsd.decrement('counted', 5)
         self.assertEqual(statsd._statsd._socket.data, b'counted:-5|c')
-        statsd.decrement('counted', 5, 0.99)
-        self.assertEqual(statsd._statsd._socket.data, b'counted:-5|c|@0.99')
+        statsd.decrement('counted', 5, 0.1)
+        self.assertTrue(statsd._statsd._socket.data.startswith(b'counted:-5|c'))
+        if statsd._statsd._socket.data != b'counted:-5|c':
+            self.assertTrue(statsd._statsd._socket.data.endswith(b'|@0.99'))
 
     def test_increment(self):
         statsd.increment('counted')
@@ -53,13 +54,17 @@ class TestStatsd(unittest.TestCase):
         statsd.increment('counted', 5)
         self.assertEqual(statsd._statsd._socket.data, b'counted:5|c')
         statsd.increment('counted', 5, 0.99)
-        self.assertEqual(statsd._statsd._socket.data, b'counted:5|c|@0.99')
+        self.assertTrue(statsd._statsd._socket.data.startswith(b'counted:5|c'))
+        if statsd._statsd._socket.data != b'counted:5|c':
+            self.assertTrue(statsd._statsd._socket.data.endswith(b'|@0.99'))
 
     def test_timing(self):
         statsd.timing('timed', 250)
         self.assertEqual(statsd._statsd._socket.data, b'timed:250|ms')
         statsd.timing('timed', 250, 0.99)
-        self.assertEqual(statsd._statsd._socket.data, b'timed:250|ms|@0.99')
+        self.assertTrue(statsd._statsd._socket.data.startswith(b'timed:250|ms'))
+        if statsd._statsd._socket.data != b'timed:250|ms':
+            self.assertTrue(statsd._statsd._socket.data.endswith(b'|@0.99'))
 
 
 class TestStatsdClient(unittest.TestCase):
@@ -88,6 +93,8 @@ class TestStatsdClient(unittest.TestCase):
         client = statsd.StatsdClient('localhost', 8125, prefix='', sample_rate=0.999)
         client.decr('buck.counter', 5)
         self.assertEqual(client._socket.data, b'buck.counter:-5|c|@0.999')
+        if client._socket.data != 'buck.counter:-5|c':
+            self.assertTrue(client._socket.data.endswith(b'|@0.999'))
 
     def test_incr(self):
         client = statsd.StatsdClient('localhost', 8125, prefix='', sample_rate=None)
@@ -98,6 +105,8 @@ class TestStatsdClient(unittest.TestCase):
         client = statsd.StatsdClient('localhost', 8125, prefix='', sample_rate=0.999)
         client.incr('buck.counter', 5)
         self.assertEqual(client._socket.data, b'buck.counter:5|c|@0.999')
+        if client._socket.data != 'buck.counter:5|c':
+            self.assertTrue(client._socket.data.endswith(b'|@0.999'))
 
     def test_send(self):
         client = statsd.StatsdClient('localhost', 8125, prefix='', sample_rate=None)
@@ -108,6 +117,8 @@ class TestStatsdClient(unittest.TestCase):
         client = statsd.StatsdClient('localhost', 8125, prefix='', sample_rate=0.999)
         client._send('buck', '50|c')
         self.assertEqual(client._socket.data, b'buck:50|c|@0.999')
+        if client._socket.data != 'buck:50|c':
+            self.assertTrue(client._socket.data.endswith(b'|@0.999'))
 
     def test_timing(self):
         client = statsd.StatsdClient('localhost', 8125, prefix='', sample_rate=None)
@@ -118,6 +129,8 @@ class TestStatsdClient(unittest.TestCase):
         client = statsd.StatsdClient('localhost', 8125, prefix='', sample_rate=0.999)
         client.timing('buck.timing', 100)
         self.assertEqual(client._socket.data, b'buck.timing:100|ms|@0.999')
+        if client._socket.data != '':
+            self.assertTrue(client._socket.data.endswith(b'|@0.999'))
 
 
 class TestStatsdCounter(unittest.TestCase):
@@ -162,7 +175,7 @@ class TestStatsdTimer(unittest.TestCase):
         timer.split('lap')
         self.assertTrue(timer._client._socket.data.startswith(b'timeit.lap:2'))
         self.assertTrue(timer._client._socket.data.endswith(b'|ms'))
-        time.sleep(0.27)
+        time.sleep(0.26)
         timer.stop()
         self.assertTrue(timer._client._socket.data.startswith(b'timeit.total:5'))
         self.assertTrue(timer._client._socket.data.endswith(b'|ms'))
