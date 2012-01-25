@@ -43,7 +43,7 @@ class TestStatsd(unittest.TestCase):
         self.assertEqual(statsd._statsd._socket.data, b'counted:-1|c')
         statsd.decrement('counted', 5)
         self.assertEqual(statsd._statsd._socket.data, b'counted:-5|c')
-        statsd.decrement('counted', 5, 0.1)
+        statsd.decrement('counted', 5, 0.99)
         self.assertTrue(statsd._statsd._socket.data.startswith(b'counted:-5|c'))
         if statsd._statsd._socket.data != b'counted:-5|c':
             self.assertTrue(statsd._statsd._socket.data.endswith(b'|@0.99'))
