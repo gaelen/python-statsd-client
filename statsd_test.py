@@ -185,9 +185,10 @@ class TestStatsdTimer(unittest.TestCase):
             @statsd.StatsdTimer.wrap('timeit')
             def do(self):
                 time.sleep(0.25)
+                return 1
         tc = TC()
-        tc.do()
-        # Cannot test output, but tests functionality.
+        result = tc.do()
+        self.assertEqual(result, 1)
 
     def test_with(self):
         timer = statsd.StatsdTimer('timeit', 'localhost', 8125, prefix='', sample_rate=None)

@@ -4,7 +4,7 @@ import random
 from socket import socket, AF_INET, SOCK_DGRAM
 import time
 
-__version__ = '1.0'
+__version__ = '1.0.1'
 
 STATSD_HOST = 'localhost'
 STATSD_PORT = 8125
@@ -129,7 +129,7 @@ class StatsdTimer(object):
         def wrapper(func):
             def f(*args, **kw):
                 with StatsdTimer(bucket):
-                    func(*args, **kw)
+                    return func(*args, **kw)
             return f
         return wrapper
 
