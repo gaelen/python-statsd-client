@@ -75,13 +75,13 @@ class TestStatsdClient(unittest.TestCase):
 
     def test_prefix(self):
         client = statsd.StatsdClient('localhost', 8125, prefix='main.bucket', sample_rate=None)
-        client._send('subname', '100|c')
+        client._send(b'subname', b'100|c')
         self.assertEqual(client._socket.data, b'main.bucket.subname:100|c')
 
         client = statsd.StatsdClient('localhost', 8125, prefix='main', sample_rate=None)
-        client._send('subname', '100|c')
+        client._send(b'subname', b'100|c')
         self.assertEqual(client._socket.data, b'main.subname:100|c')
-        client._send('subname.subsubname', '100|c')
+        client._send(b'subname.subsubname', b'100|c')
         self.assertEqual(client._socket.data, b'main.subname.subsubname:100|c')
 
     def test_decr(self):
@@ -110,12 +110,12 @@ class TestStatsdClient(unittest.TestCase):
 
     def test_send(self):
         client = statsd.StatsdClient('localhost', 8125, prefix='', sample_rate=None)
-        client._send('buck', '50|c')
+        client._send(b'buck', b'50|c')
         self.assertEqual(client._socket.data, b'buck:50|c')
 
     def test_send_sample_rate(self):
         client = statsd.StatsdClient('localhost', 8125, prefix='', sample_rate=0.999)
-        client._send('buck', '50|c')
+        client._send(b'buck', b'50|c')
         self.assertEqual(client._socket.data, b'buck:50|c|@0.999')
         if client._socket.data != 'buck:50|c':
             self.assertTrue(client._socket.data.endswith(b'|@0.999'))

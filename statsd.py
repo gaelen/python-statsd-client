@@ -4,7 +4,7 @@ import random
 from socket import socket, AF_INET, SOCK_DGRAM
 import time
 
-__version__ = '1.0.1'
+__version__ = '1.0.2'
 
 STATSD_HOST = 'localhost'
 STATSD_PORT = 8125
@@ -30,30 +30,34 @@ class StatsdClient(object):
         self._host = host or STATSD_HOST
         self._port = port or STATSD_PORT
         self._sample_rate = sample_rate or STATSD_SAMPLE_RATE
-        self._prefix = prefix or STATSD_BUCKET_PREFIX
         self._socket = socket(AF_INET, SOCK_DGRAM)
+        self._prefix = prefix or STATSD_BUCKET_PREFIX
+        if self._prefix and not isinstance(self._prefix, bytes):
+            self._prefix = self._prefix.encode('utf8')
 
     def decr(self, bucket, delta=1, sample_rate=None):
         """Decrements a counter by delta.
         """
-        value = b'%d|c' % (-1 * delta)
+        value = str(-1 * delta).encode('utf8') + b'|c'
         self._send(bucket, value, sample_rate)
 
     def incr(self, bucket, delta=1, sample_rate=None):
         """Increment a counter by delta.
         """
-        value = b'%d|c' % delta
+        value = str(delta).encode('utf8') + b'|c'
         self._send(bucket, value, sample_rate)
 
     def _send(self, bucket, value, sample_rate=None):
         """Format and send data to statsd.
         """
-        sample_rate = sample_rate or self._sample_rate
+        bucket = bucket if isinstance(bucket, bytes) else bucket.encode('utf8')
 
+        sample_rate = sample_rate or self._sample_rate
         if sample_rate and sample_rate < 1.0 and sample_rate > 0:
             if random.random() <= sample_rate:
-                value = b'%s|@%s' % (value, sample_rate)
-        stat = b'%s:%s' % (bucket, value)
+                value = value + b'|@' + str(sample_rate).encode('utf8')
+
+        stat = bucket + b':' + value
         if self._prefix:
             stat = self._prefix + b'.' + stat
 
@@ -62,7 +66,7 @@ class StatsdClient(object):
     def timing(self, bucket, ms, sample_rate=None):
         """Creates a timing sample.
         """
-        value = b'%d|ms' % ms
+        value = str(ms).encode('utf8') + b'|ms'
         self._send(bucket, value, sample_rate)
 
 
@@ -73,7 +77,7 @@ class StatsdCounter(object):
                  sample_rate=None):
         self._client = StatsdClient(host=host, port=port, prefix=prefix,
                                     sample_rate=sample_rate)
-        self._bucket = bucket
+        self._bucket = bucket if isinstance(bucket, bytes) else bucket.encode('utf8')
 
     def __add__(self, num):
         self._client.incr(self._bucket, delta=num)
@@ -91,7 +95,7 @@ class StatsdTimer(object):
                  sample_rate=None):
         self._client = StatsdClient(host=host, port=port, prefix=prefix,
                                     sample_rate=sample_rate)
-        self._bucket = bucket
+        self._bucket = bucket if isinstance(bucket, bytes) else bucket.encode('utf8')
 
     def __enter__(self):
         self.start()
@@ -99,13 +103,14 @@ class StatsdTimer(object):
 
     def __exit__(self, type, value, traceback):
         if type is not None:
-            self.stop('total-except')
+            self.stop(b'total-except')
         else:
             self.stop()
 
-    def start(self, bucket_key='start'):
+    def start(self, bucket_key=b'start'):
         """Start the timer.
         """
+        bucket_key = bucket_key if isinstance(bucket_key, bytes) else bucket_key.encode('utf8')
         self._start = time.time() * 1000
         self._splits = [(bucket_key, self._start), ]
 
@@ -113,15 +118,17 @@ class StatsdTimer(object):
         """Records time since start() or last call to split() and sends
         result to statsd.
         """
+        bucket_key = bucket_key if isinstance(bucket_key, bytes) else bucket_key.encode('utf8')
         self._splits.append((bucket_key, time.time() * 1000))
-        self._client.timing(self._bucket + '.' + bucket_key,
+        self._client.timing(self._bucket + b'.' + bucket_key,
                             self._splits[-1][1] - self._splits[-2][1])
 
-    def stop(self, bucket_key='total'):
+    def stop(self, bucket_key=b'total'):
         """Stops the timer and sends total time to statsd.
         """
+        bucket_key = bucket_key if isinstance(bucket_key, bytes) else bucket_key.encode('utf8')
         self._stop = time.time() * 1000
-        self._client.timing(self._bucket + '.' + bucket_key,
+        self._client.timing(self._bucket + b'.' + bucket_key,
                             self._stop - self._start)
 
     @staticmethod
@@ -150,8 +157,8 @@ def init_statsd(settings=None):
                                           STATSD_SAMPLE_RATE)
         STATSD_BUCKET_PREFIX = settings.get('STATSD_BUCKET_PREFIX',
                                             STATSD_BUCKET_PREFIX)
-    _statsd = StatsdClient(STATSD_HOST, STATSD_PORT,
-                           STATSD_SAMPLE_RATE, STATSD_BUCKET_PREFIX)
+    _statsd = StatsdClient(host=STATSD_HOST, port=STATSD_PORT,
+                           sample_rate=STATSD_SAMPLE_RATE, prefix=STATSD_BUCKET_PREFIX)
     return _statsd
 
 _statsd = init_statsd()
