@@ -56,6 +56,8 @@ class StatsdClient(object):
         if sample_rate and sample_rate < 1.0 and sample_rate > 0:
             if random.random() <= sample_rate:
                 value = value + b'|@' + str(sample_rate).encode('utf8')
+            else:
+                return
 
         stat = bucket + b':' + value
         if self._prefix:
