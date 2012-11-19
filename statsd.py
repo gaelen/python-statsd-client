@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+#
+# This file is part of python-statsd-client released under the Apache
+# License, Version 2.0. See the NOTICE for more information.
 
 from __future__ import absolute_import
 import random
@@ -10,7 +14,6 @@ STATSD_HOST = 'localhost'
 STATSD_PORT = 8125
 STATSD_SAMPLE_RATE = None
 STATSD_BUCKET_PREFIX = None
-
 
 def decrement(bucket, delta=1, sample_rate=None):
     _statsd.decr(bucket, delta, sample_rate)
