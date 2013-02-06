@@ -62,6 +62,16 @@ class TestStatsd(unittest.TestCase):
         if statsd._statsd._socket.data != b'counted:5|c':
             self.assertTrue(statsd._statsd._socket.data.endswith(b'|@0.99'))
 
+    def test_gauge(self):
+        statsd.gauge('gauged', 1)
+        self.assertEqual(statsd._statsd._socket.data, b'gauged:1|g')
+        statsd.gauge('gauged', 5)
+        self.assertEqual(statsd._statsd._socket.data, b'gauged:5|g')
+        statsd.gauge('gauged', -5, 0.99)
+        self.assertTrue(statsd._statsd._socket.data.startswith(b'gauged:-5|g'))
+        if statsd._statsd._socket.data != b'gauged:-5|g':
+            self.assertTrue(statsd._statsd._socket.data.endswith(b'|@0.99'))
+
     def test_timing(self):
         statsd.timing('timed', 250)
         self.assertEqual(statsd._statsd._socket.data, b'timed:250|ms')

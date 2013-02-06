@@ -22,6 +22,8 @@ def decrement(bucket, delta=1, sample_rate=None):
 def increment(bucket, delta=1, sample_rate=None):
     _statsd.incr(bucket, delta, sample_rate)
 
+def gauge(bucket, value, sample_rate=None):
+    _statsd.gauge(bucket, value, sample_rate)
 
 def timing(bucket, ms, sample_rate=None):
     _statsd.timing(bucket, ms, sample_rate)
@@ -49,6 +51,12 @@ class StatsdClient(object):
         """
         value = str(delta).encode('utf8') + b'|c'
         self._send(bucket, value, sample_rate)
+
+    def gauge(self, bucket, value, sample_rate=None):
+        """Send a gauge value.
+        """
+        str_value = str(value).encode('utf8') + b'|g'
+        self._send(bucket, str_value, sample_rate)
 
     def _send(self, bucket, value, sample_rate=None):
         """Format and send data to statsd.

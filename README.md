@@ -62,6 +62,13 @@ Want to count things? Use StatsdCounter:
     counter += 5 # equivalent to counter.incr(5)
     counter -= 10 # equivalent to counter.decr(10)
 
+### Gauge
+Want to gauge something? Use statsd.gauge:
+
+    import statsd
+    statsd.init_statsd({'STATSD_BUCKET_PREFIX': 'photos'})
+    statsd.gauge('filesize', 100) # sends out gauge value 100 for bucket 'photos.filesize'
+
 ### Timing
 Interested in timing? Check out all the ways you can time things:
 
