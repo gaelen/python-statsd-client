@@ -8,7 +8,7 @@ import random
 from socket import socket, AF_INET, SOCK_DGRAM
 import time
 
-__version__ = '1.0.2'
+__version__ = '1.0.3'
 
 STATSD_HOST = 'localhost'
 STATSD_PORT = 8125
