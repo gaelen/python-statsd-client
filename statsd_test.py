@@ -42,6 +42,14 @@ class TestStatsd(unittest.TestCase):
         self.assertEqual(statsd.STATSD_SAMPLE_RATE, 0.99)
         self.assertEqual(statsd.STATSD_BUCKET_PREFIX, 'testing')
 
+    def test_exception_in_send(self):
+        def mock_sendto_raise_error(data, addr):
+           mock_sendto_raise_error.exception_raised = True
+           raise socket.gaierror
+        statsd._statsd._socket.sendto = mock_sendto_raise_error
+        statsd.decrement('counted')
+        self.assertTrue(mock_sendto_raise_error.exception_raised)
+
     def test_decrement(self):
         statsd.decrement('counted')
         self.assertEqual(statsd._statsd._socket.data, b'counted:-1|c')
