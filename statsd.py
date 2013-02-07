@@ -9,7 +9,7 @@ from socket import socket, AF_INET, SOCK_DGRAM
 import time
 import logging
 
-__version__ = '1.0.3'
+__version__ = '1.0.4'
 
 STATSD_HOST = 'localhost'
 STATSD_PORT = 8125
