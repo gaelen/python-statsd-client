@@ -7,8 +7,9 @@ from __future__ import absolute_import
 import random
 from socket import socket, AF_INET, SOCK_DGRAM
 import time
+import logging
 
-__version__ = '1.0.2'
+__version__ = '1.0.4'
 
 STATSD_HOST = 'localhost'
 STATSD_PORT = 8125
@@ -22,6 +23,8 @@ def decrement(bucket, delta=1, sample_rate=None):
 def increment(bucket, delta=1, sample_rate=None):
     _statsd.incr(bucket, delta, sample_rate)
 
+def gauge(bucket, value, sample_rate=None):
+    _statsd.gauge(bucket, value, sample_rate)
 
 def timing(bucket, ms, sample_rate=None):
     _statsd.timing(bucket, ms, sample_rate)
@@ -50,23 +53,32 @@ class StatsdClient(object):
         value = str(delta).encode('utf8') + b'|c'
         self._send(bucket, value, sample_rate)
 
+    def gauge(self, bucket, value, sample_rate=None):
+        """Send a gauge value.
+        """
+        str_value = str(value).encode('utf8') + b'|g'
+        self._send(bucket, str_value, sample_rate)
+
     def _send(self, bucket, value, sample_rate=None):
         """Format and send data to statsd.
         """
-        bucket = bucket if isinstance(bucket, bytes) else bucket.encode('utf8')
+        try:
+           bucket = bucket if isinstance(bucket, bytes) else bucket.encode('utf8')
 
-        sample_rate = sample_rate or self._sample_rate
-        if sample_rate and sample_rate < 1.0 and sample_rate > 0:
-            if random.random() <= sample_rate:
-                value = value + b'|@' + str(sample_rate).encode('utf8')
-            else:
-                return
+           sample_rate = sample_rate or self._sample_rate
+           if sample_rate and sample_rate < 1.0 and sample_rate > 0:
+               if random.random() <= sample_rate:
+                   value = value + b'|@' + str(sample_rate).encode('utf8')
+               else:
+                   return
 
-        stat = bucket + b':' + value
-        if self._prefix:
-            stat = self._prefix + b'.' + stat
+           stat = bucket + b':' + value
+           if self._prefix:
+               stat = self._prefix + b'.' + stat
 
-        self._socket.sendto(stat, (self._host, self._port))
+           self._socket.sendto(stat, (self._host, self._port))
+        except Exception,e:
+            _logger.error("Failed to send statsd packet.", exc_info=True)
 
     def timing(self, bucket, ms, sample_rate=None):
         """Creates a timing sample.
@@ -166,4 +178,5 @@ def init_statsd(settings=None):
                            sample_rate=STATSD_SAMPLE_RATE, prefix=STATSD_BUCKET_PREFIX)
     return _statsd
 
+_logger = logging.getLogger('statsd')
 _statsd = init_statsd()
