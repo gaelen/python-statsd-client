@@ -3,7 +3,7 @@
 # This file is part of python-statsd-client released under the Apache
 # License, Version 2.0. See the NOTICE for more information.
 
-from __future__ import absolute_import
+
 from distutils.core import setup
 import os
 

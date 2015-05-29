@@ -3,7 +3,7 @@
 # This file is part of python-statsd-client released under the Apache
 # License, Version 2.0. See the NOTICE for more information.
 
-from __future__ import absolute_import
+
 import random
 from socket import socket, AF_INET, SOCK_DGRAM
 import time
@@ -77,7 +77,7 @@ class StatsdClient(object):
                stat = self._prefix + b'.' + stat
 
            self._socket.sendto(stat, (self._host, self._port))
-        except Exception,e:
+        except Exception as e:
             _logger.error("Failed to send statsd packet.", exc_info=True)
 
     def timing(self, bucket, ms, sample_rate=None):
