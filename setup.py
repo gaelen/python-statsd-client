@@ -3,20 +3,21 @@
 # This file is part of python-statsd-client released under the Apache
 # License, Version 2.0. See the NOTICE for more information.
 
-from __future__ import absolute_import
+
 from distutils.core import setup
-import os
 
 from statsd import __version__
 
-def main():
-    cwd = os.path.dirname(os.path.abspath(__file__))
-    path = os.path.join(cwd, 'README.txt')
-    readme = open(path, 'rb').read()
 
+def fread(filename):
+    with open(filename) as f:
+        return f.read()
+
+
+def main():
     setup(name='statsd-client',
           description='StatsD client for Python',
-          long_description=readme,
+          long_description=fread('README.txt'),
           version=__version__,
           license='Apache 2.0',
           author='Gaelen Hadlett',
