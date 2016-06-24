@@ -5,6 +5,7 @@
 
 
 import random
+from functools import wraps
 from socket import socket, AF_INET, SOCK_DGRAM
 import time
 import logging
@@ -154,6 +155,7 @@ class StatsdTimer(object):
     @staticmethod
     def wrap(bucket):
         def wrapper(func):
+            @wraps(func)
             def f(*args, **kw):
                 with StatsdTimer(bucket):
                     return func(*args, **kw)
