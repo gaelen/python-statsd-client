@@ -45,6 +45,9 @@ class StatsdClient(object):
         if self._prefix and not isinstance(self._prefix, bytes):
             self._prefix = self._prefix.encode('utf8')
 
+    def __del__(self):
+        self._socket.close()
+
     def decr(self, bucket, delta=1, sample_rate=None):
         """Decrements a counter by delta.
         """
